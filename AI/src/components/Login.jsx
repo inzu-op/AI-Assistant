@@ -35,6 +35,8 @@ const Login = () => {
               .then(userRes => {
                 const userId = userRes.data.user._id;
                 setTimeout(() => {
+                  axios.get("https://a-8-rgdf.onrender.com/verify-token", { withCredentials: true })
+                .then(() => {
                   navigate(`/chat/${userId}`);
                 }, 4000);
               })
