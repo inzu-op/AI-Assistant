@@ -63,7 +63,7 @@ const Content = forwardRef(({ answerHistory, setAnswerHistory }, ref) => {
     ]);
 
     try {
-      const response = await axios.post('http://localhost:3000/chatbot', {
+      const response = await axios.post('https://api-ai-1-lz3k.onrender.com/chatbot', {
         inputText: currentQuestion,
       });
       console.log("API Response:", response.data);
