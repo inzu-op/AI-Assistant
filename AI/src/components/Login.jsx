@@ -35,15 +35,15 @@ const Login = () => {
               .then(userRes => {
                 const userId = userRes.data.user._id;
                 setTimeout(() => {
-                  axios.get("https://a-8-rgdf.onrender.com/verify-token", { withCredentials: true })
-                    .then(() => {
-                      navigate(`/chat/${userId}`);
-                    },4000)
-                    .catch(err => {
-                      console.error("Token verification failed:", err);
-                      navigate("/chat/user");
-                    });
-                },);
+             axios.get("https://a-8-rgdf.onrender.com/verify-token", { withCredentials: true })
+  .then(() => {
+    navigate(`/chat/${userId}`);
+  },4000)  // This is incorrect syntax
+  .catch(err => {
+    console.error("Token verification failed:", err);
+    navigate("/chat/user");
+  });
+},);  // This empty timeout callback is also incorrect
               })
               .catch(err => {
                 console.error("Error fetching user data:", err);
