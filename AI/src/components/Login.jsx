@@ -36,8 +36,13 @@ const Login = () => {
                 const userId = userRes.data.user._id;
                 setTimeout(() => {
                   axios.get("https://a-8-rgdf.onrender.com/verify-token", { withCredentials: true })
-                .then(() => {
-                  navigate(`/chat/${userId}`);
+                    .then(() => {
+                      navigate(`/chat/${userId}`);
+                    })
+                    .catch(err => {
+                      console.error("Token verification failed:", err);
+                      navigate("/chat/user");
+                    });
                 }, 4000);
               })
               .catch(err => {
