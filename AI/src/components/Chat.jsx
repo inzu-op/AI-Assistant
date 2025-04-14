@@ -10,7 +10,7 @@ const Chat = () => {
   const navigate = useNavigate()
   axios.defaults.withCredentials =true
   useEffect(() => {
-    axios.get("http://localhost:3000/chat",)
+    axios.get("https://api-ai-1-lz3k.onrender.com/chat",)
     .then((res) => {
      console.log(res.data)
     })
