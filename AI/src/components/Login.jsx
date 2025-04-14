@@ -38,7 +38,7 @@ const Login = () => {
                   axios.get("https://a-8-rgdf.onrender.com/verify-token", { withCredentials: true })
                     .then(() => {
                       navigate(`/chat/${userId}`);
-                    })
+                    },4000)
                     .catch(err => {
                       console.error("Token verification failed:", err);
                       navigate("/chat/user");
