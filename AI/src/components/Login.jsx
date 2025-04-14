@@ -23,7 +23,7 @@ const Login = () => {
     }
 
     axios
-      .post("http://localhost:3000/login", { email, password })
+      .post("https://api-ai-1-lz3k.onrender.com/login", { email, password })
       .then((result) => {
         if (result.data.Status === "success") {
           if (result.data.role === "admin") {
@@ -31,7 +31,7 @@ const Login = () => {
             setBgBlack(true);
             setShowLanding(true);
             
-            axios.get(`http://localhost:3000/userdata/email/${email}`)
+            axios.get(`https://api-ai-1-lz3k.onrender.com/userdata/email/${email}`)
               .then(userRes => {
                 const userId = userRes.data.user._id;
                 setTimeout(() => {
