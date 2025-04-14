@@ -18,7 +18,7 @@ function SignUp() {
             setTimeout(() => setMessage({ text: "", type: "" }), 2000);
             return;
         }
-        axios.post("http://localhost:3000/signup", { name, email, password })
+        axios.post("https://api-ai-1-lz3k.onrender.com/signup", { name, email, password })
             .then(result => {
                 if (result.data === "success") {
                     setMessage({ text: "Signup successful! Redirecting...", type: "success" });
