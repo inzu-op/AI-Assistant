@@ -22,7 +22,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get(`http://localhost:3000/userdata/${id}`, {
+                const response = await axios.get(`https://api-ai-1-lz3k.onrender.com/userdata/${id}`, {
                     withCredentials: true
                 });
 
@@ -61,7 +61,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                 return;
             }
 
-            const response = await axios.delete(`http://localhost:3000/conversation/${selectedConv._id}`, {
+            const response = await axios.delete(`https://api-ai-1-lz3k.onrender.com/conversation/${selectedConv._id}`, {
                 withCredentials: true
             });
 
@@ -86,7 +86,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
     const confirmDeleteAllChats = async () => {
         try {
-            const response = await axios.delete('http://localhost:3000/conversations/all', {
+            const response = await axios.delete('https://api-ai-1-lz3k.onrender.com/conversations/all', {
                 withCredentials: true
             });
 
@@ -107,7 +107,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     };
 
     const handleLogout =()=>{
-        axios.get("http://localhost:3000/logout")
+        axios.get("https://api-ai-1-lz3k.onrender.com/logout")
         .then(res=> {
           if(res.data.Status === "success"){
             navigate("/Login", { replace: true });
@@ -155,7 +155,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
     const fetchConversations = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/conversations', {
+            const response = await axios.get('https://api-ai-1-lz3k.onrender.com/conversations', {
                 withCredentials: true
             });
             setConversations(response.data);
