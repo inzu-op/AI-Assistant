@@ -43,7 +43,7 @@ const Login = () => {
                       console.error("Token verification failed:", err);
                       navigate("/chat/user");
                     });
-                }, 4000);
+                },);
               })
               .catch(err => {
                 console.error("Error fetching user data:", err);
