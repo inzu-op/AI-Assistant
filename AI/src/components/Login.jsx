@@ -31,26 +31,26 @@ const Login = () => {
             setBgBlack(true);
             setShowLanding(true);
             
-            axios.get(`https://api-ai-1-lz3k.onrender.com/userdata/email/${email}`)
-              .then(userRes => {
-                const userId = userRes.data.user._id;
-                setTimeout(() => {
-             axios.get("https://a-8-rgdf.onrender.com/verify-token", { withCredentials: true })
-  .then(() => {
-    navigate(`/chat/${userId}`);
-  },4000)  // This is incorrect syntax
+          axios.get(`https://api-ai-1-lz3k.onrender.com/userdata/email/${email}`)
+  .then(userRes => {
+    const userId = userRes.data.user._id;
+    setTimeout(() => {
+      axios.get("https://a-8-rgdf.onrender.com/verify-token", { withCredentials: true })
+        .then(() => {
+          navigate(`/chat/${userId}`);
+        })
+        .catch(err => {
+          console.error("Token verification failed:", err);
+          navigate("/chat/user");
+        });
+    }, 4000);  // Properly formatted timeout with 4000ms delay
+  })
   .catch(err => {
-    console.error("Token verification failed:", err);
-    navigate("/chat/user");
+    console.error("Error fetching user data:", err);
+    setTimeout(() => {
+      navigate("/chat/user");
+    }, 4000);
   });
-},);  // This empty timeout callback is also incorrect
-              })
-              .catch(err => {
-                console.error("Error fetching user data:", err);
-                setTimeout(() => {
-                  navigate("/chat/user");
-                }, 4000);
-              });
           }
         } else {
           setMessage({
