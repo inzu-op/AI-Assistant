@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../context/context.jsx';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
+import { replace, useNavigate, useParams } from 'react-router-dom';
 
 const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const { id } = useParams();
@@ -15,53 +15,9 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const [userData, setUserData] = useState({ name: '', email: '' });
     const navigate = useNavigate();
 
-    // Fixed close function
-  const handleClose = () => {
-    try {
-        setIsActive(false);
-        console.log("Slider closed successfully");
-    } catch (error) {
-        console.error("Error closing slider:", error);
-        // Fallback mechanism
-        document.body.classList.remove('slider-active');
-    }
-};
-
-    // Fixed new chat function
-   const handleNewChat = () => {
-    try {
-        // Clear local storage first
-        localStorage.removeItem("chatHistory");
-        console.log("Chat history cleared from localStorage");
-        
-        // Update state if the prop exists
-        if (typeof setAnswerHistory === 'function') {
-            setAnswerHistory([]);
-            console.log("Answer history state reset");
-        } else {
-            console.warn("setAnswerHistory is not a function or not provided");
-        }
-        
-        // Close the slider
-        setIsActive(false);
-        console.log("Slider closed");
-        
-        // Handle navigation with fallback
-        if (navigate) {
-            navigate(window.location.pathname, { replace: true });
-            console.log("Navigation triggered");
-        } else {
-            console.warn("Navigate function not available");
-            // Fallback: reload the page
-            window.location.reload();
-        }
-    } catch (error) {
-        console.error("Error in handleNewChat:", error);
-        // Ultimate fallback: refresh the page
-        alert("An error occurred. The page will refresh.");
-        window.location.reload();
-    }
-};
+    const handleToggle = () => {
+        setIsActive(prev => !prev);
+    };
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -90,7 +46,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
     useEffect(() => {
         fetchConversations();
-    }, [conversations]); // Removed conversations from dependencies to avoid infinite loop
+    }, [conversations]);
 
     const handleDeleteClick = (conv, e) => {
         e.stopPropagation();
@@ -150,21 +106,28 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
         setShowDeleteAll(false); 
     };
 
-    const handleLogout = () => {
+    const handleLogout =()=>{
         axios.get("https://api-ai-1-lz3k.onrender.com/logout")
-        .then(res => {
-            if(res.data.Status === "success") {
-                navigate("/Login", { replace: true });
-                window.location.reload();
-            } else {
-                alert("Error");
-            }
+        .then(res=> {
+          if(res.data.Status === "success"){
+            navigate("/Login", { replace: true });
+            location.reload(true)
+          }
+          else{
+            alert("Error")
+          }
         })
-        .catch(err => console.log(err));
+        .catch(err => console.log(err))
+      }
+
+    const handleNewChat = () => {
+        localStorage.removeItem("chatHistory");
+        setAnswerHistory([]);
+        setIsActive(false);
     };
 
     const handleConversationClick = (conv) => {
-        setAnswerHistory([{
+        setAnswerHistory(prevHistory => [...prevHistory, {
             question: conv.question,
             answer: conv.answer
         }]);
@@ -207,7 +170,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     return (
         <>
             <div
-                className={`fixed h-[100vh] shadow-lg left-0 top-0 z-10 rounded transition-all duration-300
+                className={`fixed h-[100vh] shadow-lg left-0 top-0 z-10 rounded-lg transition-all duration-300
                     ${isActive ? 'translate-x-0' : '-translate-x-full'}
                     ${theme === "light" ? "bg-white text-[#501854] border" : "bg-[#1D121A] text-white"}
                     w-[70%] md:w-[15vw]`}
@@ -216,7 +179,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                     {isActive && (
                         <div
                             className="flex items-center py-4 pl-3 cursor-pointer"
-                            onClick={handleClose}
+                            onClick={handleToggle}
                         >
                             <i className={`fa-solid fa-right-from-bracket text-[15px] md:text-lg p-2 rounded-md transition duration-100 ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
                             <h3 className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
@@ -306,6 +269,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                 </div>
             )}
 
+            {/* Delete All Chats Confirmation Popup */}
             {showDeleteAll && (
                 <div className="fixed inset-0 flex items-center justify-center z-100 animate-fadeIn">
                     <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
@@ -334,7 +298,6 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                     </div>
                 </div>
             )}
-
             {showSettingsPopup && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 animate-fadeIn">
                     <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
