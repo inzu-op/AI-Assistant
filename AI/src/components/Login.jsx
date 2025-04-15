@@ -14,56 +14,73 @@ const Login = () => {
 
   axios.defaults.withCredentials = true;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    
+    // Validate inputs
     if (!email || !password) {
       setMessage({ text: "Please fill in all fields!", type: "error" });
       setTimeout(() => setMessage({ text: "", type: "" }), 2000);
       return;
     }
-
-    axios
-      .post("https://api-ai-1-lz3k.onrender.com/login", { email, password })
-      .then((result) => {
-        if (result.data.Status === "success") {
-          if (result.data.role === "admin") {
-            setMessage({ text: "Login successful!", type: "success" });
-            setBgBlack(true);
-            setShowLanding(true);
-            
-          axios.get(`https://api-ai-1-lz3k.onrender.com/userdata/email/${email}`)
-  .then(userRes => {
-    const userId = userRes.data.user._id;
-    setTimeout(() => {
-      axios.get("https://api-ai-1-lz3k.onrender.com/verify-token", { withCredentials: true })
-        .then(() => {
-          navigate(`/chat/${userId}`);
-        })
-        .catch(err => {
-          console.error("Token verification failed:", err);
-          navigate("/chat/user");
-        });
-    }, 4000);  // Properly formatted timeout with 4000ms delay
-  })
-  .catch(err => {
-    console.error("Error fetching user data:", err);
-    setTimeout(() => {
-      navigate("/chat/user");
-    }, 4000);
-  });
-          }
-        } else {
-          setMessage({
-            text: "No user found, please signup first",
-            type: "error",
-          });
+    
+    try {
+      // Login request
+      const result = await axios.post(
+        "https://api-ai-1-lz3k.onrender.com/login", 
+        { email, password },
+        { withCredentials: true }
+      );
+      
+      if (result.data.Status === "success") {
+        if (result.data.role === "admin") {
+          setMessage({ text: "Login successful!", type: "success" });
+          setBgBlack(true);
+          setShowLanding(true);
+          
+          // Wait for cookie to be properly set
+          setTimeout(async () => {
+            try {
+              // First verify the token to ensure cookie is set
+              await axios.get(
+                "https://api-ai-1-lz3k.onrender.com/verify-token", 
+                { withCredentials: true }
+              );
+              
+              // Then get user data
+              const userRes = await axios.get(
+                `https://api-ai-1-lz3k.onrender.com/userdata/email/${email}`,
+                { withCredentials: true }
+              );
+              
+              const userId = userRes.data.user._id;
+              navigate(`/chat/${userId}`);
+            } catch (err) {
+              console.error("Authentication error:", err);
+              // Handle authentication error
+              setMessage({ 
+                text: "Authentication failed. Please login again.", 
+                type: "error" 
+              });
+              setTimeout(() => setMessage({ text: "", type: "" }), 2000);
+            }
+          }, 1000); // Wait for 1 second to ensure cookie is set
         }
+      } else {
+        setMessage({
+          text: "No user found, please signup first",
+          type: "error",
+        });
         setTimeout(() => setMessage({ text: "", type: "" }), 2000);
-      })
-      .catch(() => {
-        setMessage({ text: "Login failed. Please check your Email and password.", type: "error" });
-        setTimeout(() => setMessage({ text: "", type: "" }), 2000);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setMessage({ 
+        text: "Login failed. Please check your Email and password.", 
+        type: "error" 
       });
+      setTimeout(() => setMessage({ text: "", type: "" }), 2000);
+    }
   };
   return (
     <div className={`min-h-screen w-full flex justify-center items-center font-poppins transition-colors duration-1000 ${bgBlack ? "bg-black" : "bg-white"} px-4 py-8`}>
