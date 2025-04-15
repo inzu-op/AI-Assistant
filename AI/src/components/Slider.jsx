@@ -46,7 +46,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
     useEffect(() => {
         fetchConversations();
-    }, [conversations]);
+    }, []);
 
     const handleDeleteClick = (conv, e) => {
         e.stopPropagation();
