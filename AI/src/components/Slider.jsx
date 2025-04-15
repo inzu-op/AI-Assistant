@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../context/context.jsx';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
+import { replace, useNavigate, useParams } from 'react-router-dom';
 
 const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const { id } = useParams();
@@ -19,7 +19,6 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
         setIsActive(prev => !prev);
     };
 
-    // Fetch user data once when component mounts
     useEffect(() => {
         const fetchUserData = async () => {
             try {
@@ -45,10 +44,9 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
         fetchUserData();
     }, [id]);
 
-    // Fixed the infinite loop by removing conversations from dependency array
     useEffect(() => {
         fetchConversations();
-    }, []); // Empty dependency array means this runs once on mount
+    }, [conversations]);
 
     const handleDeleteClick = (conv, e) => {
         e.stopPropagation();
@@ -68,7 +66,6 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
             });
 
             if (response.status === 200) {
-                // Update state without triggering a re-fetch
                 setConversations(prevConversations =>
                     prevConversations.filter(conv => conv._id !== selectedConv._id)
                 );
@@ -109,20 +106,19 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
         setShowDeleteAll(false); 
     };
 
-    const handleLogout = () => {
-        axios.get("https://api-ai-1-lz3k.onrender.com/logout", { withCredentials: true })
-        .then(res => {
+    const handleLogout =()=>{
+        axios.get("https://api-ai-1-lz3k.onrender.com/logout")
+        .then(res=> {
           if(res.data.Status === "success"){
             navigate("/Login", { replace: true });
-            // Don't forcefully reload the page - let React Router handle it
-            // location.reload(true) 
+            location.reload(true)
           }
           else{
             alert("Error")
           }
         })
         .catch(err => console.log(err))
-    };
+      }
 
     const handleNewChat = () => {
         localStorage.removeItem("chatHistory");
@@ -162,17 +158,11 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
             const response = await axios.get('https://api-ai-1-lz3k.onrender.com/conversations', {
                 withCredentials: true
             });
-            if (Array.isArray(response.data)) {
-                setConversations(response.data);
-            } else {
-                console.error('Expected array for conversations, got:', response.data);
-                setConversations([]);
-            }
+            setConversations(response.data);
         } catch (error) {
             console.error('Error fetching conversations:', error);
             if (error.response && error.response.status === 401) {
                 console.log("Unauthorized access, please log in again.");
-                navigate('/login', { replace: true });
             }
         }
     };
