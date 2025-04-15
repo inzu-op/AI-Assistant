@@ -16,27 +16,30 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const navigate = useNavigate();
 
     const handleToggle = () => {
-        setIsActive(prev => !prev);
+        setIsActive((prev) => !prev);
     };
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get(`https://api-ai-1-lz3k.onrender.com/userdata/${id}`, {
-                    withCredentials: true
-                });
+                const response = await axios.get(
+                    `https://api-ai-1-lz3k.onrender.com/userdata/${id}`,
+                    {
+                        withCredentials: true,
+                    }
+                );
 
                 if (response.data && response.data.success) {
                     setUserData({
                         name: response.data.user.name || 'User',
-                        email: response.data.user.email || 'No email'
+                        email: response.data.user.email || 'No email',
                     });
                 }
             } catch (error) {
-                console.error("Error fetching user data:", error);
+                console.error('Error fetching user data:', error);
                 setUserData({
                     name: 'User',
-                    email: 'No email'
+                    email: 'No email',
                 });
             }
         };
@@ -61,13 +64,16 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                 return;
             }
 
-            const response = await axios.delete(`https://api-ai-1-lz3k.onrender.com/conversation/${selectedConv._id}`, {
-                withCredentials: true
-            });
+            const response = await axios.delete(
+                `https://api-ai-1-lz3k.onrender.com/conversation/${selectedConv._id}`,
+                {
+                    withCredentials: true,
+                }
+            );
 
             if (response.status === 200) {
-                setConversations(prevConversations =>
-                    prevConversations.filter(conv => conv._id !== selectedConv._id)
+                setConversations((prevConversations) =>
+                    prevConversations.filter((conv) => conv._id !== selectedConv._id)
                 );
                 console.log('Conversation deleted successfully');
             }
@@ -81,20 +87,23 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     };
 
     const handleDeleteAllChats = () => {
-        setShowDeleteAll(true); 
+        setShowDeleteAll(true);
     };
 
     const confirmDeleteAllChats = async () => {
         try {
-            const response = await axios.delete('https://api-ai-1-lz3k.onrender.com/conversations/all', {
-                withCredentials: true
-            });
+            const response = await axios.delete(
+                'https://api-ai-1-lz3k.onrender.com/conversations/all',
+                {
+                    withCredentials: true,
+                }
+            );
 
             if (response.status === 200) {
                 setConversations([]);
                 setAnswerHistory([]);
                 console.log('All conversations deleted successfully');
-                setShowDeleteAll(false); 
+                setShowDeleteAll(false);
             }
         } catch (error) {
             console.error('Error deleting all conversations:', error);
@@ -103,34 +112,36 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     };
 
     const cancelDeleteAllChats = () => {
-        setShowDeleteAll(false); 
+        setShowDeleteAll(false);
     };
 
-    const handleLogout =()=>{
-        axios.get("https://api-ai-1-lz3k.onrender.com/logout")
-        .then(res=> {
-          if(res.data.Status === "success"){
-            navigate("/Login", { replace: true });
-            location.reload(true)
-          }
-          else{
-            alert("Error")
-          }
-        })
-        .catch(err => console.log(err))
-      }
+    const handleLogout = () => {
+        axios
+            .get('https://api-ai-1-lz3k.onrender.com/logout')
+            .then((res) => {
+                if (res.data.Status === 'success') {
+                    navigate('/Login', { replace: true });
+                    location.reload(true);
+                } else {
+                    alert('Error');
+                }
+            })
+            .catch((err) => console.log(err));
+    };
 
     const handleNewChat = () => {
-        localStorage.removeItem("chatHistory");
-        setAnswerHistory([]);
+        localStorage.removeItem('chatHistory');
+        setAnswerHistory([]); // Corrected line
         setIsActive(false);
     };
 
     const handleConversationClick = (conv) => {
-        setAnswerHistory(prevHistory => [...prevHistory, {
-            question: conv.question,
-            answer: conv.answer
-        }]);
+        setAnswerHistory([
+            {
+                question: conv.question,
+                answer: conv.answer,
+            },
+        ]);
         setIsActive(false);
 
         setTimeout(() => {
@@ -155,14 +166,17 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
     const fetchConversations = async () => {
         try {
-            const response = await axios.get('https://api-ai-1-lz3k.onrender.com/conversations', {
-                withCredentials: true
-            });
+            const response = await axios.get(
+                'https://api-ai-1-lz3k.onrender.com/conversations',
+                {
+                    withCredentials: true,
+                }
+            );
             setConversations(response.data);
         } catch (error) {
             console.error('Error fetching conversations:', error);
             if (error.response && error.response.status === 401) {
-                console.log("Unauthorized access, please log in again.");
+                console.log('Unauthorized access, please log in again.');
             }
         }
     };
@@ -172,7 +186,10 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
             <div
                 className={`fixed h-[100vh] shadow-lg left-0 top-0 z-10 rounded-lg transition-all duration-300
                     ${isActive ? 'translate-x-0' : '-translate-x-full'}
-                    ${theme === "light" ? "bg-white text-[#501854] border" : "bg-[#1D121A] text-white"}
+                    ${theme === 'light'
+                        ? 'bg-white text-[#501854] border'
+                        : 'bg-[#1D121A] text-white'
+                    }
                     w-[70%] md:w-[15vw]`}
             >
                 <div className="w-full h-full flex flex-col">
@@ -181,8 +198,16 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                             className="flex items-center py-4 pl-3 cursor-pointer"
                             onClick={handleToggle}
                         >
-                            <i className={`fa-solid fa-right-from-bracket text-[15px] md:text-lg p-2 rounded-md transition duration-100 ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
-                            <h3 className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
+                            <i
+                                className={`fa-solid fa-right-from-bracket text-[15px] md:text-lg p-2 rounded-md transition duration-100 ${theme === 'light'
+                                    ? 'hover:bg-[#F4DBEF]'
+                                    : 'hover:bg-gray-700'
+                                    }`}
+                            ></i>
+                            <h3
+                                className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''
+                                    }`}
+                            >
                                 Close
                             </h3>
                         </div>
@@ -194,27 +219,43 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                                 className="flex items-center py-2 cursor-pointer"
                                 onClick={handleNewChat}
                             >
-                                <i className={`fa-solid fa-plus text-lg p-2 rounded-md transition duration-100 text-[15px] md:text-lg ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
-                                <h3 className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
+                                <i
+                                    className={`fa-solid fa-plus text-lg p-2 rounded-md transition duration-100 text-[15px] md:text-lg ${theme === 'light'
+                                        ? 'hover:bg-[#F4DBEF]'
+                                        : 'hover:bg-gray-700'
+                                        }`}
+                                ></i>
+                                <h3
+                                    className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''
+                                        }`}
+                                >
                                     New Chat
                                 </h3>
                             </div>
 
                             <div className="history mt-20 flex-1">
-                                <h1 className='font-medium text-[15px] md:text-lg'>Recent Search </h1>
-                                <div className='mt-3 overflow-y-auto max-h-[40vh] custom-scrollbar overflow-x-hidden'>
-                                    <ul className='list-none'>
+                                <h1 className="font-medium text-[15px] md:text-lg">
+                                    Recent Search{' '}
+                                </h1>
+                                <div className="mt-3 overflow-y-auto max-h-[40vh] custom-scrollbar overflow-x-hidden">
+                                    <ul className="list-none">
                                         {conversations.map((conv, index) => (
                                             <li
                                                 key={index}
-                                                className={`text-[10px] md:text-[13px] rounded-lg p-3 flex items-center justify-between transition-all duration-200 group relative hover:pr-8 ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-[#2C2431]"} ${isVisible ? 'visible' : ''}`}
+                                                className={`text-[10px] md:text-[13px] rounded-lg p-3 flex items-center justify-between transition-all duration-200 group relative hover:pr-8 ${theme === 'light'
+                                                    ? 'hover:bg-[#F4DBEF]'
+                                                    : 'hover:bg-[#2C2431]'
+                                                    } ${isVisible ? 'visible' : ''}`}
                                                 onClick={() => handleConversationClick(conv)}
                                             >
-                                                <span className='font-medium truncate pr-2 cursor-pointer'>
+                                                <span className="font-medium truncate pr-2 cursor-pointer">
                                                     {conv.question}
                                                 </span>
                                                 <i
-                                                    className={`fa-solid fa-xmark absolute right-2 opacity-0 group-hover:opacity-100  text-[12px] md:text-[13px] transition-all duration-300 transform translate-x-3 group-hover:translate-x-0 cursor-pointer p-2 rounded-md ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}
+                                                    className={`fa-solid fa-xmark absolute right-2 opacity-0 group-hover:opacity-100  text-[12px] md:text-[13px] transition-all duration-300 transform translate-x-3 group-hover:translate-x-0 cursor-pointer p-2 rounded-md ${theme === 'light'
+                                                        ? 'hover:bg-[#F4DBEF]'
+                                                        : 'hover:bg-gray-700'
+                                                        }`}
                                                     onClick={(e) => handleDeleteClick(conv, e)}
                                                 ></i>
                                             </li>
@@ -225,11 +266,15 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
                             <div className="setting flex items-center py-4 mt-auto mb-20">
                                 <i
-                                    className={`fa-solid fa-gear text-lg p-2 rounded-md transition duration-100 text-[12px] md:text-lg ${theme === "light" ? "hover:bg-[#f8f4f8]" : "hover:bg-gray-700"} cursor-pointer`}
+                                    className={`fa-solid fa-gear text-lg p-2 rounded-md transition duration-100 text-[12px] md:text-lg ${theme === 'light'
+                                        ? 'hover:bg-[#f8f4f8]'
+                                        : 'hover:bg-gray-700'
+                                        } cursor-pointer`}
                                     onClick={() => setShowSettingsPopup(true)}
                                 ></i>
                                 <h3
-                                    className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''} cursor-pointer`}
+                                    className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''
+                                        } cursor-pointer`}
                                     onClick={() => setShowSettingsPopup(true)}
                                 >
                                     Settings
@@ -242,12 +287,22 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
             {showDeletePopup && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 animate-fadeIn">
-                    <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
+                    <div
+                        className="absolute inset-0 bg-black/10 backdrop-brightness-50"
                         onClick={() => setShowDeletePopup(false)}
                     ></div>
-                    <div className={`${theme === 'light' ? 'bg-white text-[#501854]' : 'bg-[#1D121A] text-white'} rounded-lg p-6 w-[90%] max-w-[400px] shadow-xl relative animate-scaleIn`}>
-                        <h3 className="text-lg font-semibold mb-4">Delete Conversation</h3>
-                        <p className="mb-6">Are you sure you want to delete this conversation?</p>
+                    <div
+                        className={`${theme === 'light'
+                            ? 'bg-white text-[#501854]'
+                            : 'bg-[#1D121A] text-white'
+                            } rounded-lg p-6 w-[90%] max-w-[400px] shadow-xl relative animate-scaleIn`}
+                    >
+                        <h3 className="text-lg font-semibold mb-4">
+                            Delete Conversation
+                        </h3>
+                        <p className="mb-6">
+                            Are you sure you want to delete this conversation?
+                        </p>
                         <div className="flex justify-end gap-3">
                             <button
                                 className={`px-4 py-2 rounded-md transition-colors duration-200 ${theme === 'light'
@@ -272,10 +327,16 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
             {/* Delete All Chats Confirmation Popup */}
             {showDeleteAll && (
                 <div className="fixed inset-0 flex items-center justify-center z-100 animate-fadeIn">
-                    <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
+                    <div
+                        className="absolute inset-0 bg-black/10 backdrop-brightness-50"
                         onClick={cancelDeleteAllChats}
                     ></div>
-                    <div className={`${theme === 'light' ? 'bg-white text-[#501854]' : 'bg-[#1D121A] text-white'} rounded-lg p-6 w-[90%] max-w-[400px] shadow-xl relative animate-scaleIn`}>
+                    <div
+                        className={`${theme === 'light'
+                            ? 'bg-white text-[#501854]'
+                            : 'bg-[#1D121A] text-white'
+                            } rounded-lg p-6 w-[90%] max-w-[400px] shadow-xl relative animate-scaleIn`}
+                    >
                         <h3 className="text-lg font-semibold mb-4">Delete All Chats</h3>
                         <p className="mb-6">Are you sure you want to delete all chats?</p>
                         <div className="flex justify-end gap-3">
@@ -300,15 +361,24 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
             )}
             {showSettingsPopup && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 animate-fadeIn">
-                    <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
+                    <div
+                        className="absolute inset-0 bg-black/10 backdrop-brightness-50"
                         onClick={() => setShowSettingsPopup(false)}
                     ></div>
-                    <div className={`${theme === 'light' ? 'bg-white text-[#501854]' : 'bg-[#1D121A] text-white'} rounded-lg p-6 w-[90%] max-w-[400px] shadow-xl relative animate-scaleIn`}>
+                    <div
+                        className={`${theme === 'light'
+                            ? 'bg-white text-[#501854]'
+                            : 'bg-[#1D121A] text-white'
+                            } rounded-lg p-6 w-[90%] max-w-[400px] shadow-xl relative animate-scaleIn`}
+                    >
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-semibold">Settings</h3>
                             <button
                                 onClick={() => setShowSettingsPopup(false)}
-                                className={`p-2 rounded-full ${theme === 'light' ? 'hover:bg-[#f8f4f8]' : 'hover:bg-gray-700'}`}
+                                className={`p-2 rounded-full ${theme === 'light'
+                                    ? 'hover:bg-[#f8f4f8]'
+                                    : 'hover:bg-gray-700'
+                                    }`}
                             >
                                 <i className="fa-solid fa-xmark px-2 hover:rounded-4xl"></i>
                             </button>
@@ -316,7 +386,12 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
                         <div className="mb-6">
                             <div className="flex items-center mb-4">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-3 ${theme === 'light' ? 'bg-[#F4DBEF]' : 'bg-[#2C2431]'}`}>
+                                <div
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center mr-3 ${theme === 'light'
+                                        ? 'bg-[#F4DBEF]'
+                                        : 'bg-[#2C2431]'
+                                        }`}
+                                >
                                     <i className="fa-solid fa-user text-lg"></i>
                                 </div>
                                 <div>
@@ -334,7 +409,9 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                                     }`}
                             >
                                 <span>Theme</span>
-                                <span className="opacity-75">{theme === 'light' ? 'Light' : 'Dark'}</span>
+                                <span className="opacity-75">
+                                    {theme === 'light' ? 'Light' : 'Dark'}
+                                </span>
                             </button>
 
                             <button
@@ -347,7 +424,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                                 <i className="fa-solid fa-comment-dots"></i>
                             </button>
 
-                            <div className='flex justify-around items-center'>
+                            <div className="flex justify-around items-center">
                                 <button
                                     className={`w-[160px] flex items-center justify-around px-3 py-3 rounded-md transition-colors duration-200 ${theme === 'light'
                                         ? 'bg-gray-100 hover:bg-gray-200'
