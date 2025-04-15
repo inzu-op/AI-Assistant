@@ -63,7 +63,7 @@ const Structure = ({ isActive, setIsActive }) => {
         setAnswerHistory={setAnswerHistory}
       />
 
-      <div className="main rounded-lg transition-all duration-200 ease-in-out p-2 custom-scrollbar" style={contentStyle}>
+      <div className="main rounded transition-all duration-200 ease-in-out p-2 custom-scrollbar" style={contentStyle}>
         {/* Top Bar */}
         <div className="flex justify-between items-center">
 
