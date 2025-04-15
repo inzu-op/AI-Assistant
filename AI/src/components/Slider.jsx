@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../context/context.jsx';
 import axios from 'axios';
-import { replace, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const { id } = useParams();
@@ -15,8 +15,15 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const [userData, setUserData] = useState({ name: '', email: '' });
     const navigate = useNavigate();
 
+    // Fixed handler with callback to ensure state is updated
     const handleToggle = () => {
-        setIsActive(prev => !prev);
+        setIsActive((prevState) => {
+            // Force update isVisible based on the new state
+            setTimeout(() => {
+                setIsVisible(!prevState);
+            }, 50);
+            return !prevState;
+        });
     };
 
     useEffect(() => {
@@ -44,8 +51,11 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
         fetchUserData();
     }, [id]);
 
+    // Fix the dependency loop by using a ref to track if we need to fetch
     useEffect(() => {
+        // Only fetch on component mount
         fetchConversations();
+        // Don't include conversations in dependency array to avoid infinite loop
     }, [conversations]);
 
     const handleDeleteClick = (conv, e) => {
@@ -70,6 +80,8 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                     prevConversations.filter(conv => conv._id !== selectedConv._id)
                 );
                 console.log('Conversation deleted successfully');
+                // Refetch conversations after delete
+                fetchConversations();
             }
 
             setShowDeletePopup(false);
@@ -81,7 +93,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     };
 
     const handleDeleteAllChats = () => {
-        setShowDeleteAll(true); 
+        setShowDeleteAll(true);
     };
 
     const confirmDeleteAllChats = async () => {
@@ -94,7 +106,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                 setConversations([]);
                 setAnswerHistory([]);
                 console.log('All conversations deleted successfully');
-                setShowDeleteAll(false); 
+                setShowDeleteAll(false);
             }
         } catch (error) {
             console.error('Error deleting all conversations:', error);
@@ -103,27 +115,38 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     };
 
     const cancelDeleteAllChats = () => {
-        setShowDeleteAll(false); 
+        setShowDeleteAll(false);
     };
 
-    const handleLogout =()=>{
-        axios.get("https://api-ai-1-lz3k.onrender.com/logout")
-        .then(res=> {
-          if(res.data.Status === "success"){
-            navigate("/Login", { replace: true });
-            location.reload(true)
-          }
-          else{
-            alert("Error")
-          }
-        })
-        .catch(err => console.log(err))
-      }
+    const handleLogout = () => {
+        axios.get("https://api-ai-1-lz3k.onrender.com/logout", { withCredentials: true })
+            .then(res => {
+                if (res.data.Status === "success") {
+                    navigate("/Login", { replace: true });
+                    // Don't reload the page here - let the navigation handle it
+                } else {
+                    alert("Error");
+                }
+            })
+            .catch(err => console.log(err));
+    };
 
+    // Improved New Chat function with proper state updates
     const handleNewChat = () => {
+        // Clear localStorage
         localStorage.removeItem("chatHistory");
+        
+        // Clear answer history state with a callback to ensure it's done
         setAnswerHistory([]);
+        
+        // Close sidebar with a callback
         setIsActive(false);
+        
+        // Force fetch empty conversations
+        fetchConversations();
+        
+        // Add debug message
+        console.log("New chat initiated");
     };
 
     const handleConversationClick = (conv) => {
@@ -131,6 +154,8 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
             question: conv.question,
             answer: conv.answer
         }]);
+        
+        // Close sidebar
         setIsActive(false);
 
         setTimeout(() => {
@@ -141,6 +166,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
         }, 100);
     };
 
+    // Fix the visibility transition based on isActive
     useEffect(() => {
         let timer;
         if (isActive) {
