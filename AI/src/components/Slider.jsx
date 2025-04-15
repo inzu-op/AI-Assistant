@@ -16,18 +16,52 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const navigate = useNavigate();
 
     // Fixed close function
-    const handleClose = () => {
+  const handleClose = () => {
+    try {
         setIsActive(false);
-    };
+        console.log("Slider closed successfully");
+    } catch (error) {
+        console.error("Error closing slider:", error);
+        // Fallback mechanism
+        document.body.classList.remove('slider-active');
+    }
+};
 
     // Fixed new chat function
-    const handleNewChat = () => {
+   const handleNewChat = () => {
+    try {
+        // Clear local storage first
         localStorage.removeItem("chatHistory");
-        setAnswerHistory([]);
+        console.log("Chat history cleared from localStorage");
+        
+        // Update state if the prop exists
+        if (typeof setAnswerHistory === 'function') {
+            setAnswerHistory([]);
+            console.log("Answer history state reset");
+        } else {
+            console.warn("setAnswerHistory is not a function or not provided");
+        }
+        
+        // Close the slider
         setIsActive(false);
-        // Optional: Refresh the current route
-        navigate(window.location.pathname, { replace: true });
-    };
+        console.log("Slider closed");
+        
+        // Handle navigation with fallback
+        if (navigate) {
+            navigate(window.location.pathname, { replace: true });
+            console.log("Navigation triggered");
+        } else {
+            console.warn("Navigate function not available");
+            // Fallback: reload the page
+            window.location.reload();
+        }
+    } catch (error) {
+        console.error("Error in handleNewChat:", error);
+        // Ultimate fallback: refresh the page
+        alert("An error occurred. The page will refresh.");
+        window.location.reload();
+    }
+};
 
     useEffect(() => {
         const fetchUserData = async () => {
