@@ -31,7 +31,6 @@ const Chat = () => {
   return (
     <div style={bgStyle} className="chat-container">
       <Structure isActive={isActive} setIsActive={setIsActive} />
-      <Slider isActive={isActive}/>
     </div>
   );
 };
