@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../context/context.jsx';
 import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
+import { replace, useNavigate, useParams } from 'react-router-dom';
 
 const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const { id } = useParams();
@@ -14,250 +14,157 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const [conversations, setConversations] = useState([]);
     const [userData, setUserData] = useState({ name: '', email: '' });
     const navigate = useNavigate();
-    
-    // Use a ref to track if the component is mounted
-    const isMounted = useRef(true);
-    
-    // API URL reference for consistency
-    const API_BASE_URL = 'https://api-ai-1-lz3k.onrender.com';
 
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            isMounted.current = false;
-        };
-    }, []);
-
-    // Define API request options
-    const apiOptions = {
-        withCredentials: true,
-        headers: {
-            'Content-Type': 'application/json',
-            // Adding cache control headers to prevent caching issues
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-        }
-    };
-
-    // Simple debug function
-    const debugLog = (message) => {
-        console.log(`[Slider Debug] ${message}`);
-    };
-
-    // Handle toggle with proper state management
     const handleToggle = () => {
-        debugLog(`Toggle clicked, current state: ${isActive}`);
         setIsActive(prev => !prev);
     };
 
     useEffect(() => {
-        debugLog(`isActive changed to: ${isActive}`);
-        if (isActive) {
-            setTimeout(() => {
-                if (isMounted.current) {
-                    setIsVisible(true);
-                    debugLog("Set isVisible to true");
-                }
-            }, 100);
-        } else {
-            setIsVisible(false);
-            debugLog("Set isVisible to false");
-        }
-    }, [isActive]);
-
-    // Fetch user data
-    useEffect(() => {
         const fetchUserData = async () => {
             try {
-                debugLog("Fetching user data");
-                const response = await axios.get(`${API_BASE_URL}/userdata/${id}`, apiOptions);
+                const response = await axios.get(`https://api-ai-1-lz3k.onrender.com/userdata/${id}`, {
+                    withCredentials: true
+                });
 
-                if (response.data && response.data.success && isMounted.current) {
+                if (response.data && response.data.success) {
                     setUserData({
                         name: response.data.user.name || 'User',
                         email: response.data.user.email || 'No email'
                     });
-                    debugLog("User data fetched successfully");
                 }
             } catch (error) {
                 console.error("Error fetching user data:", error);
-                if (isMounted.current) {
-                    setUserData({
-                        name: 'User',
-                        email: 'No email'
-                    });
-                }
+                setUserData({
+                    name: 'User',
+                    email: 'No email'
+                });
             }
         };
 
         fetchUserData();
     }, [id]);
 
-    // Fetch conversations only on mount
     useEffect(() => {
-        debugLog("Component mounted, fetching conversations");
         fetchConversations();
-    }, []);
-
-    const fetchConversations = async () => {
-        try {
-            debugLog("Fetching conversations");
-            const response = await axios.get(`${API_BASE_URL}/conversations`, apiOptions);
-            
-            if (isMounted.current) {
-                setConversations(response.data);
-                debugLog(`Fetched ${response.data.length} conversations`);
-            }
-        } catch (error) {
-            console.error('Error fetching conversations:', error);
-            if (error.response && error.response.status === 401) {
-                debugLog("Unauthorized access, redirecting to login");
-                navigate("/Login", { replace: true });
-            }
-        }
-    };
+    }, [conversations]);
 
     const handleDeleteClick = (conv, e) => {
         e.stopPropagation();
-        e.preventDefault();
         setSelectedConv(conv);
         setShowDeletePopup(true);
-        debugLog(`Delete clicked for conversation: ${conv._id}`);
     };
 
     const handleDelete = async () => {
-        if (!selectedConv || !selectedConv._id) {
-            console.error('No conversation selected for deletion');
-            return;
-        }
-
         try {
-            debugLog(`Deleting conversation: ${selectedConv._id}`);
-            const response = await axios.delete(
-                `${API_BASE_URL}/conversation/${selectedConv._id}`, 
-                apiOptions
-            );
+            if (!selectedConv || !selectedConv._id) {
+                console.error('No conversation selected for deletion');
+                return;
+            }
+
+            const response = await axios.delete(`https://api-ai-1-lz3k.onrender.com/conversation/${selectedConv._id}`, {
+                withCredentials: true
+            });
 
             if (response.status === 200) {
-                if (isMounted.current) {
-                    setConversations(prevConversations =>
-                        prevConversations.filter(conv => conv._id !== selectedConv._id)
-                    );
-                    debugLog("Conversation deleted successfully");
-                }
+                setConversations(prevConversations =>
+                    prevConversations.filter(conv => conv._id !== selectedConv._id)
+                );
+                console.log('Conversation deleted successfully');
             }
+
+            setShowDeletePopup(false);
+            setSelectedConv(null);
         } catch (error) {
             console.error('Error deleting conversation:', error);
             alert('Failed to delete conversation. Please try again.');
-        } finally {
-            if (isMounted.current) {
-                setShowDeletePopup(false);
-                setSelectedConv(null);
-            }
         }
     };
 
     const handleDeleteAllChats = () => {
-        setShowDeleteAll(true);
-        debugLog("Delete all chats requested");
+        setShowDeleteAll(true); 
     };
 
     const confirmDeleteAllChats = async () => {
         try {
-            debugLog("Confirming delete all chats");
-            const response = await axios.delete(`${API_BASE_URL}/conversations/all`, apiOptions);
+            const response = await axios.delete('https://api-ai-1-lz3k.onrender.com/conversations/all', {
+                withCredentials: true
+            });
 
-            if (response.status === 200 && isMounted.current) {
+            if (response.status === 200) {
                 setConversations([]);
-                // Clear answer history in parent component
                 setAnswerHistory([]);
-                debugLog("All conversations deleted successfully");
+                console.log('All conversations deleted successfully');
+                setShowDeleteAll(false); 
             }
         } catch (error) {
             console.error('Error deleting all conversations:', error);
             alert('Failed to delete all conversations. Please try again.');
-        } finally {
-            if (isMounted.current) {
-                setShowDeleteAll(false);
-            }
         }
     };
 
     const cancelDeleteAllChats = () => {
-        setShowDeleteAll(false);
+        setShowDeleteAll(false); 
     };
 
-    const handleLogout = () => {
-        debugLog("Logout requested");
-        axios.get(`${API_BASE_URL}/logout`, apiOptions)
-            .then(res => {
-                if (res.data.Status === "success") {
-                    debugLog("Logout successful, redirecting to login");
-                    navigate("/Login", { replace: true });
-                } else {
-                    debugLog("Logout failed");
-                    alert("Error logging out");
-                }
-            })
-            .catch(err => {
-                console.error("Logout error:", err);
-                // Force logout on error
-                navigate("/Login", { replace: true });
-            });
-    };
+    const handleLogout =()=>{
+        axios.get("https://api-ai-1-lz3k.onrender.com/logout")
+        .then(res=> {
+          if(res.data.Status === "success"){
+            navigate("/Login", { replace: true });
+            location.reload(true)
+          }
+          else{
+            alert("Error")
+          }
+        })
+        .catch(err => console.log(err))
+      }
 
-    // Improved New Chat handler with proper state management
     const handleNewChat = () => {
-        debugLog("New chat requested");
-        
-        // 1. Clear localStorage
-        try {
-            localStorage.removeItem("chatHistory");
-            debugLog("Chat history cleared from localStorage");
-        } catch (e) {
-            console.error("Error clearing localStorage:", e);
-        }
-        
-        // 2. Clear answer history in parent component
-        setAnswerHistory([]); // This will update the parent component
-        debugLog("Answer history state cleared");
-        
-        // 3. Close the sidebar
+        localStorage.removeItem("chatHistory");
+        setAnswerHistory([]);
         setIsActive(false);
-        debugLog("Sidebar closed");
-        
-        // 4. Show explicit success message
-        console.log("New chat initiated successfully");
     };
 
     const handleConversationClick = (conv) => {
-        debugLog(`Conversation clicked: ${conv._id}`);
-        
-        // Update answer history in parent component
-        setAnswerHistory(prevHistory => {
-            const updatedHistory = [...prevHistory, {
-                question: conv.question,
-                answer: conv.answer
-            }];
-            debugLog(`Answer history updated with ${conv.question}`);
-            return updatedHistory;
-        });
-        
-        // Close the sidebar
+        setAnswerHistory(prevHistory => [...prevHistory, {
+            question: conv.question,
+            answer: conv.answer
+        }]);
         setIsActive(false);
-        debugLog("Sidebar closed after conversation click");
 
-        // Scroll to bottom after a delay
         setTimeout(() => {
             const chatHistoryElement = document.querySelector('.para');
             if (chatHistoryElement) {
                 chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
-                debugLog("Scrolled to bottom of chat history");
-            } else {
-                debugLog("Could not find chat history element to scroll");
             }
-        }, 200);
+        }, 100);
+    };
+
+    useEffect(() => {
+        let timer;
+        if (isActive) {
+            timer = setTimeout(() => {
+                setIsVisible(true);
+            }, 200);
+        } else {
+            setIsVisible(false);
+        }
+        return () => clearTimeout(timer);
+    }, [isActive]);
+
+    const fetchConversations = async () => {
+        try {
+            const response = await axios.get('https://api-ai-1-lz3k.onrender.com/conversations', {
+                withCredentials: true
+            });
+            setConversations(response.data);
+        } catch (error) {
+            console.error('Error fetching conversations:', error);
+            if (error.response && error.response.status === 401) {
+                console.log("Unauthorized access, please log in again.");
+            }
+        }
     };
 
     return (
@@ -269,76 +176,70 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                     w-[70%] md:w-[15vw]`}
             >
                 <div className="w-full h-full flex flex-col">
-                    {/* Close button */}
-                    <button
-                        className="flex items-center py-4 pl-3 cursor-pointer"
-                        onClick={handleToggle}
-                        aria-label="Close sidebar"
-                    >
-                        <i className={`fa-solid fa-right-from-bracket text-[15px] md:text-lg p-2 rounded-md transition duration-100 ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
-                        <span className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
-                            Close
-                        </span>
-                    </button>
-
-                    <div className="flex-1 flex flex-col pl-3">
-                        {/* New Chat button */}
-                        <button
-                            className="flex items-center py-2 cursor-pointer"
-                            onClick={handleNewChat}
-                            aria-label="Start new chat"
+                    {isActive && (
+                        <div
+                            className="flex items-center py-4 pl-3 cursor-pointer"
+                            onClick={handleToggle}
                         >
-                            <i className={`fa-solid fa-plus text-lg p-2 rounded-md transition duration-100 text-[15px] md:text-lg ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
-                            <span className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
-                                New Chat
-                            </span>
-                        </button>
+                            <i className={`fa-solid fa-right-from-bracket text-[15px] md:text-lg p-2 rounded-md transition duration-100 ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
+                            <h3 className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
+                                Close
+                            </h3>
+                        </div>
+                    )}
 
-                        {/* Recent Search */}
-                        <div className="history mt-20 flex-1">
-                            <h1 className='font-medium text-[15px] md:text-lg'>Recent Search</h1>
-                            <div className='mt-3 overflow-y-auto max-h-[40vh] custom-scrollbar overflow-x-hidden'>
-                                <ul className='list-none'>
-                                    {conversations.map((conv, index) => (
-                                        <li
-                                            key={`conv-${index}-${conv._id}`}
-                                            className={`text-[10px] md:text-[13px] rounded-lg p-3 flex items-center justify-between transition-all duration-200 group relative hover:pr-8 ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-[#2C2431]"} ${isVisible ? 'visible' : ''}`}
-                                            onClick={() => handleConversationClick(conv)}
-                                        >
-                                            <span className='font-medium truncate pr-2 cursor-pointer'>
-                                                {conv.question}
-                                            </span>
-                                            <button
-                                                className={`absolute right-2 opacity-0 group-hover:opacity-100 text-[12px] md:text-[13px] transition-all duration-300 transform translate-x-3 group-hover:translate-x-0 cursor-pointer p-2 rounded-md ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}
-                                                onClick={(e) => handleDeleteClick(conv, e)}
-                                                aria-label="Delete conversation"
+                    {isActive && (
+                        <div className="flex-1 flex flex-col pl-3">
+                            <div
+                                className="flex items-center py-2 cursor-pointer"
+                                onClick={handleNewChat}
+                            >
+                                <i className={`fa-solid fa-plus text-lg p-2 rounded-md transition duration-100 text-[15px] md:text-lg ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
+                                <h3 className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
+                                    New Chat
+                                </h3>
+                            </div>
+
+                            <div className="history mt-20 flex-1">
+                                <h1 className='font-medium text-[15px] md:text-lg'>Recent Search </h1>
+                                <div className='mt-3 overflow-y-auto max-h-[40vh] custom-scrollbar overflow-x-hidden'>
+                                    <ul className='list-none'>
+                                        {conversations.map((conv, index) => (
+                                            <li
+                                                key={index}
+                                                className={`text-[10px] md:text-[13px] rounded-lg p-3 flex items-center justify-between transition-all duration-200 group relative hover:pr-8 ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-[#2C2431]"} ${isVisible ? 'visible' : ''}`}
+                                                onClick={() => handleConversationClick(conv)}
                                             >
-                                                <i className="fa-solid fa-xmark"></i>
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
+                                                <span className='font-medium truncate pr-2 cursor-pointer'>
+                                                    {conv.question}
+                                                </span>
+                                                <i
+                                                    className={`fa-solid fa-xmark absolute right-2 opacity-0 group-hover:opacity-100  text-[12px] md:text-[13px] transition-all duration-300 transform translate-x-3 group-hover:translate-x-0 cursor-pointer p-2 rounded-md ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}
+                                                    onClick={(e) => handleDeleteClick(conv, e)}
+                                                ></i>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div className="setting flex items-center py-4 mt-auto mb-20">
+                                <i
+                                    className={`fa-solid fa-gear text-lg p-2 rounded-md transition duration-100 text-[12px] md:text-lg ${theme === "light" ? "hover:bg-[#f8f4f8]" : "hover:bg-gray-700"} cursor-pointer`}
+                                    onClick={() => setShowSettingsPopup(true)}
+                                ></i>
+                                <h3
+                                    className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''} cursor-pointer`}
+                                    onClick={() => setShowSettingsPopup(true)}
+                                >
+                                    Settings
+                                </h3>
                             </div>
                         </div>
-
-                        {/* Settings */}
-                        <div className="setting flex items-center py-4 mt-auto mb-20">
-                            <button
-                                className={`flex items-center w-full`}
-                                onClick={() => setShowSettingsPopup(true)}
-                                aria-label="Open settings"
-                            >
-                                <i className={`fa-solid fa-gear text-lg p-2 rounded-md transition duration-100 text-[12px] md:text-lg ${theme === "light" ? "hover:bg-[#f8f4f8]" : "hover:bg-gray-700"}`}></i>
-                                <span className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
-                                    Settings
-                                </span>
-                            </button>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
-            {/* Delete Confirmation Popup */}
             {showDeletePopup && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 animate-fadeIn">
                     <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
@@ -397,8 +298,6 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                     </div>
                 </div>
             )}
-
-            {/* Settings Popup */}
             {showSettingsPopup && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 animate-fadeIn">
                     <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
