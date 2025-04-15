@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from '../context/context.jsx';
 import axios from 'axios';
-import { replace, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const { id } = useParams();
@@ -15,8 +15,28 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     const [userData, setUserData] = useState({ name: '', email: '' });
     const navigate = useNavigate();
 
-    const handleToggle = () => {
-        setIsActive(prev => !prev);
+    // Explicitly handle closing the slider
+    const handleClose = () => {
+        console.log("Close function called");
+        setIsActive(false);
+    };
+
+    // Enhanced new chat function with page refresh
+    const handleNewChat = () => {
+        console.log("New chat function called");
+        // Clear local storage
+        localStorage.removeItem("chatHistory");
+        
+        // Reset answer history state
+        if (typeof setAnswerHistory === 'function') {
+            setAnswerHistory([]);
+        }
+        
+        // Close the slider
+        setIsActive(false);
+        
+        // Force refresh the page to reset everything
+        window.location.reload();
     };
 
     useEffect(() => {
@@ -46,7 +66,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
     useEffect(() => {
         fetchConversations();
-    }, [conversations]);
+    }, []); // Avoid infinite loop by removing conversations dependency
 
     const handleDeleteClick = (conv, e) => {
         e.stopPropagation();
@@ -70,6 +90,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                     prevConversations.filter(conv => conv._id !== selectedConv._id)
                 );
                 console.log('Conversation deleted successfully');
+                fetchConversations(); // Refresh conversations list
             }
 
             setShowDeletePopup(false);
@@ -106,28 +127,21 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
         setShowDeleteAll(false); 
     };
 
-    const handleLogout =()=>{
+    const handleLogout = () => {
         axios.get("https://api-ai-1-lz3k.onrender.com/logout")
-        .then(res=> {
-          if(res.data.Status === "success"){
-            navigate("/Login", { replace: true });
-            location.reload(true)
-          }
-          else{
-            alert("Error")
-          }
+        .then(res => {
+            if(res.data.Status === "success") {
+                navigate("/Login", { replace: true });
+                window.location.reload();
+            } else {
+                alert("Error");
+            }
         })
-        .catch(err => console.log(err))
-      }
-
-    const handleNewChat = () => {
-        localStorage.removeItem("chatHistory");
-        setAnswerHistory([]);
-        setIsActive(false);
+        .catch(err => console.log(err));
     };
 
     const handleConversationClick = (conv) => {
-        setAnswerHistory(prevHistory => [...prevHistory, {
+        setAnswerHistory([{
             question: conv.question,
             answer: conv.answer
         }]);
@@ -170,7 +184,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
     return (
         <>
             <div
-                className={`fixed h-[100vh] shadow-lg left-0 top-0 z-10 rounded-lg transition-all duration-300
+                className={`fixed h-[100vh] shadow-lg left-0 top-0 z-10 rounded transition-all duration-300
                     ${isActive ? 'translate-x-0' : '-translate-x-full'}
                     ${theme === "light" ? "bg-white text-[#501854] border" : "bg-[#1D121A] text-white"}
                     w-[70%] md:w-[15vw]`}
@@ -179,7 +193,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                     {isActive && (
                         <div
                             className="flex items-center py-4 pl-3 cursor-pointer"
-                            onClick={handleToggle}
+                            onClick={handleClose} // Changed to use handleClose
                         >
                             <i className={`fa-solid fa-right-from-bracket text-[15px] md:text-lg p-2 rounded-md transition duration-100 ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
                             <h3 className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
@@ -192,7 +206,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                         <div className="flex-1 flex flex-col pl-3">
                             <div
                                 className="flex items-center py-2 cursor-pointer"
-                                onClick={handleNewChat}
+                                onClick={handleNewChat} // Make sure this is using handleNewChat
                             >
                                 <i className={`fa-solid fa-plus text-lg p-2 rounded-md transition duration-100 text-[15px] md:text-lg ${theme === "light" ? "hover:bg-[#F4DBEF]" : "hover:bg-gray-700"}`}></i>
                                 <h3 className={`ml-2 text-base animated-h3 text-[14px] md:text-lg font-bold ${isVisible ? 'visible' : ''}`}>
@@ -269,7 +283,6 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                 </div>
             )}
 
-            {/* Delete All Chats Confirmation Popup */}
             {showDeleteAll && (
                 <div className="fixed inset-0 flex items-center justify-center z-100 animate-fadeIn">
                     <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
@@ -298,6 +311,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
                     </div>
                 </div>
             )}
+
             {showSettingsPopup && (
                 <div className="fixed inset-0 flex items-center justify-center z-50 animate-fadeIn">
                     <div className="absolute inset-0 bg-black/10 backdrop-brightness-50"
