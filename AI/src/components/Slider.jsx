@@ -90,7 +90,7 @@ const Slider = ({ isActive, setIsActive, setAnswerHistory }) => {
 
     useEffect(() => {
         fetchConversations();
-    }, []); // Removed conversations from dependencies to avoid infinite loop
+    }, [conversations]); // Removed conversations from dependencies to avoid infinite loop
 
     const handleDeleteClick = (conv, e) => {
         e.stopPropagation();
